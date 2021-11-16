@@ -244,59 +244,28 @@ foo x = case x of
 
 ## Predicates
 
+
+Different kinds of constraints have different kinds of evidence:
+
+  - typeclass constraints have a dictionary of the methods,
+  - an equality is witnessed by a *coercion* (proof term).
+
+<br>
+
+:::{.element: class="fragment"}
 | Predicate   | Examples                                    | Evidence      |
 | ----------- | ------------------------------------------- | ------------- |
 | Typeclass   | `Ord a`, `Num a`, `(c1, c2)`, `()`, `a ~ b` | Dictionary    |
 | Equality    | `a ~# b`, `a ~R# b`                         | Coercion      |
 | Quantified  | `∀ a. Eq a => Eq (f a)`                     | Function      |
 | Irreducible | `c a`, `F x y`                              | Not yet known |
-
-:::notes
-Plus `Special` predicates.
 :::
 
-## Solving implications
+:::notes
+A quantified constraint is like a simple implication constraint,
+what's allowed is same as in an instance head, e.g. can't do `forall a. C a => C (F a)`.
+:::
 
-<p align="center">
-<img src=solving_implications.svg height="550px" />
-</p>
-
-##
-
-```haskell
-type family F a where { F Int = Int, F (f a) = a }
-```
-
-```haskell
-[G] Num (F a) ⊢
-    [ [G] a ~ Int ⊢ [W] F a ~ Int
-    , ∀ b c. [G] Integral b, [G] a ~ Maybe c
-           ⊢ [W] Integral b, [W] Num c ]
-```
-
-<div class="worklist2">
-<p class="worklist-header">Work list</p>
-<span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2">`[G] co :: a ~ Int`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="5"><span class="fragment" data-fragment-index="2">`[W] F a ~ Int`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="4">`[G] $dNum :: Num (F a)`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="5">`[W] (F co ; F[0]) :: F a ~ Int`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10">`[G] $dIntegral :: Integral b`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10">`[G] co :: a ~ Maybe c`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10">`[W] Integral b`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10">`[W] Num c`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="14"><span class="fragment" data-fragment-index="12">`[G] $dNum :: Num (F a)`</span></span>
-</div>
-<div class="inerts2">
-<p class="inerts-header">Inert set</p>
-<span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="1">`[G] $dNum :: Num (F a)`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="3">`[G] co :: a ~ Int`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6">`[G] ($dNum |> Num co) :: Num Int`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="12"><span class="fragment" data-fragment-index="9">`[G] $dNum :: Num (F a)`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11">`[G] $dIntegral :: Integral b`<br></span>
-<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11">`[G] co :: a ~ Maybe c`<br></span>
-<span class="fragment fade-out" data-fragment-index="15"><span class="fragment" data-fragment-index="13">`[W] Num c`<br></span></span>
-<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="14">`[G] ($dNum |> Num (F co ; F[1])) :: Num c`</span>
-</div>
 
 ## Solving flat constraints
 
@@ -446,26 +415,22 @@ constraints that can be rewritten using `co`, adding them back to the work list 
 <span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="2">`[W] $dEq :: Eq a`<br></span></span>
 <span class="fragment" data-fragment-index="2">`[W] $dNum :: Num b`<br></span>
 <span class="fragment" data-fragment-index="3">`[W] co :: a ~ Maybe b`<br></span>
-<span class="fragment" data-fragment-index="5">`[W] $dEq |> co :: Eq (Maybe b)`<br></span>
+<span class="fragment" data-fragment-index="5">`[W] $dEq |> Eq co :: Eq (Maybe b)`<br></span>
 </div>
 
-<!--
+:::notes
   - Wanteds do not rewrite Givens.
   - `~R#` does not rewrite `~#`.
--->
-
-:::notes
-Current infelicity #19665: W/N does not rewrite W/R, to ensure
-that the substitution is terminating. But there are still other issues anyway #19964.
+  - W/N does not rewrite W/R (technical reason to ensure substitution is terminating, but see #19664).
 :::
 
 ## Decomposition
 
 
 ```haskell
-(a -> (b,c)) ~ (x -> (d,e))
-  ⇝ a ~ x, (b,c) ~ (d,e)
-  ⇝ a ~ x, c ~ d, c ~ e
+(a -> (b,c)) ~ (x -> (y,z))
+  ⇝ a ~ x, (b,c) ~ (y,z)
+  ⇝ a ~ x, b ~ y, c ~ z
 ```
 
 :::{.element: class="fragment"}
@@ -485,7 +450,6 @@ type TyFamCt :: Type -> Constraint
 type family TyFamCt ty where
   TyFamCt Bool  = ()
   TyFamCt (a,b) = a ~ b
-  TyFamCt c     = Integral c
 ```
 :::
 
@@ -496,6 +460,56 @@ TyFamCt (f a, g b)
   ⇝ f a ~# g b
   ⇝ f ~# g, a ~# b
 ```
+:::
+
+## Solving implications
+
+<p align="center">
+<img src=solving_implications.svg height="550px" />
+</p>
+
+##
+
+```haskell
+type family F a where { F Int = Int, F (f a) = a }
+```
+
+```haskell
+[G] Num (F a) ⊢
+    [ [G] a ~ Int ⊢ [W] F a ~ Int
+    , ∀ b c. [G] Integral b, [G] a ~ Maybe c
+           ⊢ [W] Integral b, [W] Num c ]
+```
+
+<div class="worklist2">
+<p class="worklist-header">Work list</p>
+<span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2">`[G] co :: a ~ Int`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="5"><span class="fragment" data-fragment-index="2">`[W] F a ~ Int`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="4">`[G] $dNum :: Num (F a)`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="5">`[W] (F co ; F[0]) :: F a ~ Int`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10">`[G] $dIntegral :: Integral b`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10">`[G] co :: a ~ Maybe c`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10">`[W] Integral b`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10">`[W] Num c`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="14"><span class="fragment" data-fragment-index="12">`[G] $dNum :: Num (F a)`</span></span>
+</div>
+<div class="inerts2">
+<p class="inerts-header">Inert set</p>
+<span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="1">`[G] $dNum :: Num (F a)`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="3">`[G] co :: a ~ Int`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6">`[G] ($dNum |> Num co) :: Num Int`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="12"><span class="fragment" data-fragment-index="9">`[G] $dNum :: Num (F a)`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11">`[G] $dIntegral :: Integral b`<br></span>
+<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11">`[G] co :: a ~ Maybe c`<br></span>
+<span class="fragment fade-out" data-fragment-index="15"><span class="fragment" data-fragment-index="13">`[W] Num c`<br></span></span>
+<span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="14">`[G] ($dNum |> Num (F co ; F[1])) :: Num c`</span>
+</div>
+
+:::notes
+I'm now writing down the evidence terms.
+
+Note: we are dropping the Wanteds from the inert set once we fully solve them,
+but we separately record the evidence as this is used in elaboration ("evidence bindings").
 :::
 
 

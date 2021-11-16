@@ -293,6 +293,13 @@ Solve the implication <code>[G] Eq a ⊢ [W] Eq [a]</code> using the dictionary 
 </section>
 <section id="predicates" class="slide level2">
 <h2>Predicates</h2>
+<p>Different kinds of constraints have different kinds of evidence:</p>
+<ul>
+<li>typeclass constraints have a dictionary of the methods,</li>
+<li>an equality is witnessed by a <em>coercion</em> (proof term).</li>
+</ul>
+<p><br></p>
+<div class="element: fragment">
 <table>
 <thead>
 <tr class="header">
@@ -324,35 +331,10 @@ Solve the implication <code>[G] Eq a ⊢ [W] Eq [a]</code> using the dictionary 
 </tr>
 </tbody>
 </table>
+</div>
 <aside class="notes">
-<p>Plus <code>Special</code> predicates.</p>
+<p>A quantified constraint is like a simple implication constraint, what’s allowed is same as in an instance head, e.g. can’t do <code>forall a. C a =&gt; C (F a)</code>.</p>
 </aside>
-</section>
-<section id="solving-implications" class="slide level2">
-<h2>Solving implications</h2>
-<p align="center">
-<img src=solving_implications.svg height="550px" />
-</p>
-</section>
-<section id="section" class="slide level2">
-<h2></h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>, <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
-<div class="worklist2">
-<p class="worklist-header">
-Work list
-</p>
-<p><span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2"><code>[G] co :: a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="5"><span class="fragment" data-fragment-index="2"><code>[W] F a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="4"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="5"><code>[W] (F co ; F[0]) :: F a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10"><code>[G] $dIntegral :: Integral b</code><br></span></span> <span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10"><code>[G] co :: a ~ Maybe c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10"><code>[W] Integral b</code><br></span></span> <span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10"><code>[W] Num c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="14"><span class="fragment" data-fragment-index="12"><code>[G] $dNum :: Num (F a)</code></span></span></p>
-</div>
-<div class="inerts2">
-<p class="inerts-header">
-Inert set
-</p>
-<p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="1"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="3"><code>[G] co :: a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6"><code>[G] ($dNum |&gt; Num co) :: Num Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="12"><span class="fragment" data-fragment-index="9"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] $dIntegral :: Integral b</code><br></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] co :: a ~ Maybe c</code><br></span> <span class="fragment fade-out" data-fragment-index="15"><span class="fragment" data-fragment-index="13"><code>[W] Num c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="14"><code>[G] ($dNum |&gt; Num (F co ; F[1])) :: Num c</code></span></p>
-</div>
 </section>
 <section id="solving-flat-constraints" class="slide level2">
 <h2>Solving flat constraints</h2>
@@ -493,42 +475,71 @@ because of overlap of available instances.
 <p><span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2"><code>[W] a ~ Maybe b</code><br></span></span> <span class="fragment fade-out" data-fragment-index="5"><span class="fragment" data-fragment-index="4"><code>[W] Eq a</code><br></span></span></p>
 </div>
 <div class="inerts2 fragment" data-fragment-index="1">
-<p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="2"><code>[W] $dEq :: Eq a</code><br></span></span> <span class="fragment" data-fragment-index="2"><code>[W] $dNum :: Num b</code><br></span> <span class="fragment" data-fragment-index="3"><code>[W] co :: a ~ Maybe b</code><br></span> <span class="fragment" data-fragment-index="5"><code>[W] $dEq |&gt; co :: Eq (Maybe b)</code><br></span></p>
+<p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="2"><code>[W] $dEq :: Eq a</code><br></span></span> <span class="fragment" data-fragment-index="2"><code>[W] $dNum :: Num b</code><br></span> <span class="fragment" data-fragment-index="3"><code>[W] co :: a ~ Maybe b</code><br></span> <span class="fragment" data-fragment-index="5"><code>[W] $dEq |&gt; Eq co :: Eq (Maybe b)</code><br></span></p>
 </div>
-<!--
-  - Wanteds do not rewrite Givens.
-  - `~R#` does not rewrite `~#`.
--->
 <aside class="notes">
-<p>Current infelicity #19665: W/N does not rewrite W/R, to ensure that the substitution is terminating. But there are still other issues anyway #19964.</p>
+<ul>
+<li>Wanteds do not rewrite Givens.</li>
+<li><code>~R#</code> does not rewrite <code>~#</code>.</li>
+<li>W/N does not rewrite W/R (technical reason to ensure substitution is terminating, but see #19664).</li>
+</ul>
 </aside>
 </section>
 <section id="decomposition" class="slide level2">
 <h2>Decomposition</h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(a <span class="ot">-&gt;</span> (b,c)) <span class="op">~</span> (x <span class="ot">-&gt;</span> (d,e))</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, (b,c) <span class="op">~</span> (d,e)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, c <span class="op">~</span> d, c <span class="op">~</span> e</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>(a <span class="ot">-&gt;</span> (b,c)) <span class="op">~</span> (x <span class="ot">-&gt;</span> (y,z))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, (b,c) <span class="op">~</span> (y,z)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, b <span class="op">~</span> y, c <span class="op">~</span> z</span></code></pre></div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Nt</span> a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b <span class="co">-- if the newtype constructor for Nt is in scope</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Nt</span> a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b <span class="co">-- if the newtype constructor for Nt is in scope</span></span></code></pre></div>
 </div>
 </section>
 <section id="canonicalisation" class="slide level2">
 <h2>Canonicalisation</h2>
 <p>A <strong>canonical</strong> constraint is one that is in <strong>atomic</strong> form: it can’t be decomposed or rewritten in any way.</p>
 <div class="element: fragment">
-<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">TyFamCt</span><span class="ot"> ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Constraint</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">TyFamCt</span> ty <span class="kw">where</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> <span class="dt">Bool</span>  <span class="ot">=</span> ()</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> (a,b) <span class="ot">=</span> a <span class="op">~</span> b</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> c     <span class="ot">=</span> <span class="dt">Integral</span> c</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">TyFamCt</span><span class="ot"> ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Constraint</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">TyFamCt</span> ty <span class="kw">where</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> <span class="dt">Bool</span>  <span class="ot">=</span> ()</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> (a,b) <span class="ot">=</span> a <span class="op">~</span> b</span></code></pre></div>
 </div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TyFamCt</span> (f a, g b)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~</span> g b</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~#</span> g b</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  ⇝ f <span class="op">~#</span> g, a <span class="op">~#</span> b</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TyFamCt</span> (f a, g b)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~</span> g b</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~#</span> g b</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  ⇝ f <span class="op">~#</span> g, a <span class="op">~#</span> b</span></code></pre></div>
 </div>
+</section>
+<section id="solving-implications" class="slide level2">
+<h2>Solving implications</h2>
+<p align="center">
+<img src=solving_implications.svg height="550px" />
+</p>
+</section>
+<section id="section" class="slide level2">
+<h2></h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>, <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
+<div class="worklist2">
+<p class="worklist-header">
+Work list
+</p>
+<p><span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2"><code>[G] co :: a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="5"><span class="fragment" data-fragment-index="2"><code>[W] F a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="4"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="6"><span class="fragment" data-fragment-index="5"><code>[W] (F co ; F[0]) :: F a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10"><code>[G] $dIntegral :: Integral b</code><br></span></span> <span class="fragment fade-out" data-fragment-index="11"><span class="fragment" data-fragment-index="10"><code>[G] co :: a ~ Maybe c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10"><code>[W] Integral b</code><br></span></span> <span class="fragment fade-out" data-fragment-index="13"><span class="fragment" data-fragment-index="10"><code>[W] Num c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="14"><span class="fragment" data-fragment-index="12"><code>[G] $dNum :: Num (F a)</code></span></span></p>
+</div>
+<div class="inerts2">
+<p class="inerts-header">
+Inert set
+</p>
+<p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="1"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="3"><code>[G] co :: a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6"><code>[G] ($dNum |&gt; Num co) :: Num Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="12"><span class="fragment" data-fragment-index="9"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] $dIntegral :: Integral b</code><br></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] co :: a ~ Maybe c</code><br></span> <span class="fragment fade-out" data-fragment-index="15"><span class="fragment" data-fragment-index="13"><code>[W] Num c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="14"><code>[G] ($dNum |&gt; Num (F co ; F[1])) :: Num c</code></span></p>
+</div>
+<aside class="notes">
+<p>I’m now writing down the evidence terms.</p>
+<p>Note: we are dropping the Wanteds from the inert set once we fully solve them, but we separately record the evidence as this is used in elaboration (“evidence bindings”).</p>
+</aside>
 </section>
 <section id="questions" class="slide level2">
 <h2>Questions?</h2>
