@@ -210,7 +210,7 @@ Wanted: `Eq [a]`
 Solve the implication `[G] Eq a ⊢ [W] Eq [a]` using the dictionary function `$fEq_List :: Eq a -> Eq [a]`.
 :::
 
-:::note
+:::notes
 We denote Givens by `[G]` and Wanteds by `[W]`.
 What's a Wanted and what's a Given is obvious here (Givens to the left of the implication, Wanteds to the right),
 but it's useful to specifically notate this anyway.
@@ -500,3 +500,6 @@ TyFamCt (f a, g b)
 
 
 ## Questions?
+
+Slides available online:  
+&nbsp;&nbsp;[sheaf.github.io/ghc-constraint-solver](https://sheaf.github.io/ghc-constraint-solver)
