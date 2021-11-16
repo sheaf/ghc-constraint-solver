@@ -478,11 +478,7 @@ because of overlap of available instances.
 <p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="2"><code>[W] $dEq :: Eq a</code><br></span></span> <span class="fragment" data-fragment-index="2"><code>[W] $dNum :: Num b</code><br></span> <span class="fragment" data-fragment-index="3"><code>[W] co :: a ~ Maybe b</code><br></span> <span class="fragment" data-fragment-index="5"><code>[W] $dEq |&gt; Eq co :: Eq (Maybe b)</code><br></span></p>
 </div>
 <aside class="notes">
-<ul>
-<li>Wanteds do not rewrite Givens.</li>
-<li><code>~R#</code> does not rewrite <code>~#</code>.</li>
-<li>W/N does not rewrite W/R (technical reason to ensure substitution is terminating, but see #19664).</li>
-</ul>
+<p>I’m now writing down the evidence terms. - Wanteds do not rewrite Givens. - <code>~R#</code> does not rewrite <code>~#</code>. - W/N does not rewrite W/R (technical reason to ensure substitution is terminating, but see #19664).</p>
 </aside>
 </section>
 <section id="decomposition" class="slide level2">
@@ -537,7 +533,6 @@ Inert set
 <p><span class="fragment fade-out" data-fragment-index="4"><span class="fragment" data-fragment-index="1"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="3"><code>[G] co :: a ~ Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6"><code>[G] ($dNum |&gt; Num co) :: Num Int</code><br></span></span> <span class="fragment fade-out" data-fragment-index="12"><span class="fragment" data-fragment-index="9"><code>[G] $dNum :: Num (F a)</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] $dIntegral :: Integral b</code><br></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="11"><code>[G] co :: a ~ Maybe c</code><br></span> <span class="fragment fade-out" data-fragment-index="15"><span class="fragment" data-fragment-index="13"><code>[W] Num c</code><br></span></span> <span class="fragment fade-out" data-fragment-index="16"><span class="fragment" data-fragment-index="14"><code>[G] ($dNum |&gt; Num (F co ; F[1])) :: Num c</code></span></p>
 </div>
 <aside class="notes">
-<p>I’m now writing down the evidence terms.</p>
 <p>Note: we are dropping the Wanteds from the inert set once we fully solve them, but we separately record the evidence as this is used in elaboration (“evidence bindings”).</p>
 </aside>
 </section>

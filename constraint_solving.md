@@ -419,6 +419,7 @@ constraints that can be rewritten using `co`, adding them back to the work list 
 </div>
 
 :::notes
+I'm now writing down the evidence terms.
   - Wanteds do not rewrite Givens.
   - `~R#` does not rewrite `~#`.
   - W/N does not rewrite W/R (technical reason to ensure substitution is terminating, but see #19664).
@@ -506,8 +507,6 @@ type family F a where { F Int = Int, F (f a) = a }
 </div>
 
 :::notes
-I'm now writing down the evidence terms.
-
 Note: we are dropping the Wanteds from the inert set once we fully solve them,
 but we separately record the evidence as this is used in elaboration ("evidence bindings").
 :::
