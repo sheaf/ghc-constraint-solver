@@ -13,21 +13,17 @@ subtitle: Haskell eXchange
 date: November 16th, 2021
 ---
 
-##
-
 <p align="center">
 <img src=SPJ_french.svg height="500px" />
 </p>
 
 :::notes
-Simon says the role of typechecking is:
+Goal of typechecking (as per SPJ):
 
-- Elaborate good programs (type inference, constraint solving), filling in type annotations, dictionaries, inserting casts (this info is useful for Core Lint)
+- Elaborate good programs.
 - Reject bad programs with helpful error messages
 
-This design is modular, separating the complex Haskell language from the simple constraint language.
-
-Plan: recap of constraint generation, then overview of constraint solving.
+Modular design: separate source Haskell from constraint language. 
 :::
 
 ## Damas--Hindley--Milner
@@ -69,6 +65,11 @@ This is **Algorithm W** from Damas--Hindley--Milner type theory.
 It always infers the most general type.
 </div>
 
+:::notes
+`~` means equality. It is symmetric but we mostly mean it left-to-right.
+Using Greek letters for metavariables, Latin letters for skolem variables.
+:::
+
 ## Elaboration
 
 ```haskell
@@ -87,6 +88,7 @@ foo (xs :: [Int])
 ```
 :::
 
+<!--
 :::{.element: class="fragment"}
 ```haskell
 f x = x
@@ -104,6 +106,7 @@ f :: ∀ a. a -> a
 <img src=HM_inst.svg height="48px" style="margin-left:12px;margin-top:12px"/>
 </p>
 :::
+-->
 
 ## Scaling up to Haskell
 
@@ -136,6 +139,10 @@ f x y = [ g x y, Just (not x) ]
 <span class="fragment" data-fragment-index="10">`δ ~ Maybe Bool`</span>
 </div>
 </div>
+
+:::notes
+Note how we go between `forall a. F a -> a -> a` and `F ε -> ε -> ε`: generalisation and instantiation.
+:::
 
 <!--
 ## Bidirectional type-checking
@@ -200,7 +207,13 @@ palindrome = \ @a ($dEq_a :: Eq a) ->
 :::{.element: class="fragment"}
 Given: `Eq a`  
 Wanted: `Eq [a]`  
-Solve the implication `[G] Eq a ⇛ [W] Eq [a]` using the dictionary function `$fEq_List :: Eq a -> Eq [a]`.
+Solve the implication `[G] Eq a ⊢ [W] Eq [a]` using the dictionary function `$fEq_List :: Eq a -> Eq [a]`.
+:::
+
+:::note
+We denote Givens by `[G]` and Wanteds by `[W]`.
+What's a Wanted and what's a Given is obvious here (Givens to the left of the implication, Wanteds to the right),
+but it's useful to specifically notate this anyway.
 :::
 
 ## Nested implications
@@ -291,9 +304,6 @@ type family F a where { F Int = Int, F (f a) = a }
 <img src=interaction_pipeline.svg height="550px" />
 </p>
 
-:::notes
-Explain the inert set and the work list.
-:::
 
 <!--
 ## Instance resolution

@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="reveal.js/dist/reset.css">
   <link rel="stylesheet" href="reveal.js/dist/reveal.css">
   <style>
+    .reveal .sourceCode {  /* see #7635 */
+      overflow: visible;
+    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     span.underline{text-decoration: underline;}
@@ -104,20 +107,16 @@ pandoc -t revealjs -s -o index.html constraint_solving.md -V revealjs-url=reveal
 
 Custom theme in reveal.js/dist/themes/welltyped_theme.css
 -->
-</section>
-<section id="section" class="slide level2">
-<h2></h2>
 <p align="center">
 <img src=SPJ_french.svg height="500px" />
 </p>
 <aside class="notes">
-<p>Simon says the role of typechecking is:</p>
+<p>Goal of typechecking (as per SPJ):</p>
 <ul>
-<li>Elaborate good programs (type inference, constraint solving), filling in type annotations, dictionaries, inserting casts (this info is useful for Core Lint)</li>
+<li>Elaborate good programs.</li>
 <li>Reject bad programs with helpful error messages</li>
 </ul>
-<p>This design is modular, separating the complex Haskell language from the simple constraint language.</p>
-<p>Plan: recap of constraint generation, then overview of constraint solving.</p>
+<p>Modular design: separate source Haskell from constraint language.</p>
 </aside>
 </section>
 <section id="damashindleymilner" class="slide level2">
@@ -145,6 +144,9 @@ Inert set
 <p>This is <strong>Algorithm W</strong> from Damas–Hindley–Milner type theory.<br />
 It always infers the most general type.</p>
 </div>
+<aside class="notes">
+<p><code>~</code> means equality. It is symmetric but we mostly mean it left-to-right. Using Greek letters for metavariables, Latin letters for skolem variables.</p>
+</aside>
 </section>
 <section id="elaboration" class="slide level2">
 <h2>Elaboration</h2>
@@ -158,24 +160,32 @@ It always infers the most general type.</p>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">:</span> <span class="op">@</span>(<span class="dt">Maybe</span> <span class="dt">Int</span>)</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    [] <span class="op">@</span>(<span class="dt">Maybe</span> <span class="dt">Int</span>)</span></code></pre></div>
 </div>
-<div class="element: fragment">
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>f x <span class="ot">=</span> x</span></code></pre></div>
-</div>
-<div class="element: fragment">
-<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> ∀ a<span class="op">.</span> a <span class="ot">-&gt;</span> a</span></code></pre></div>
-</div>
-<div class="element: fragment">
+<!--
+:::{.element: class="fragment"}
+```haskell
+f x = x
+```
+:::
+:::{.element: class="fragment"}
+```haskell
+f :: ∀ a. a -> a
+```
+:::
+
+:::{.element: class="fragment"}
 <p align="center" class="infobox">
-<img src=HM_gen.svg height="48px" style="margin-right:12px;margin-top:12px"/> <img src=HM_inst.svg height="48px" style="margin-left:12px;margin-top:12px"/>
+<img src=HM_gen.svg height="48px" style="margin-right:12px;margin-top:12px"/>
+<img src=HM_inst.svg height="48px" style="margin-left:12px;margin-top:12px"/>
 </p>
-</div>
+:::
+-->
 </section>
 <section id="scaling-up-to-haskell" class="slide level2">
 <h2>Scaling up to Haskell</h2>
-<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> (<span class="dt">Maybe</span> a) <span class="ot">=</span> a }</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>f x y <span class="ot">=</span> [ g x y, <span class="dt">Just</span> (<span class="fu">not</span> x) ]</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> (<span class="dt">Maybe</span> a) <span class="ot">=</span> a }</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ot">g ::</span> <span class="dt">F</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>f x y <span class="ot">=</span> [ g x y, <span class="dt">Just</span> (<span class="fu">not</span> x) ]</span></code></pre></div>
 <div class="fragment" data-fragment-index="1">
 <div class="types">
 <p><span class="fragment" data-fragment-index="2"><code>f :: α -&gt; β -&gt; γ</code><br></span> <span class="fragment" data-fragment-index="3"><code>(:) :: δ -&gt; [δ] -&gt; [δ]</code><br></span> <span class="fragment" data-fragment-index="5"><code>g :: F ε -&gt; ε -&gt; ε</code></span></p>
@@ -193,6 +203,9 @@ Inert set
 <p><span class="fragment" data-fragment-index="4"><code>γ ~ [δ]</code><br></span> <span class="fragment fade-out" data-fragment-index="9"><span class="fragment" data-fragment-index="6"><code>α ~ F ε</code><br></span></span> <span class="fragment" data-fragment-index="6"><code>β ~ ε</code><br></span> <span class="fragment" data-fragment-index="6"><code>ε ~ δ</code><br></span> <span class="fragment" data-fragment-index="8"><code>α ~ Bool</code><br></span> <span class="fragment" data-fragment-index="10"><code>δ ~ Maybe Bool</code></span></p>
 </div>
 </div>
+<aside class="notes">
+<p>Note how we go between <code>forall a. F a -&gt; a -&gt; a</code> and <code>F ε -&gt; ε -&gt; ε</code>: generalisation and instantiation.</p>
+</aside>
 <!--
 ## Bidirectional type-checking
 
@@ -237,39 +250,42 @@ Add some examples here.
 </section>
 <section id="typeclasses-implications" class="slide level2">
 <h2>Typeclasses, implications</h2>
-<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ot">palindrome ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>palindrome ds <span class="ot">=</span> ds <span class="op">==</span> <span class="fu">reverse</span> ds</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ot">palindrome ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>palindrome ds <span class="ot">=</span> ds <span class="op">==</span> <span class="fu">reverse</span> ds</span></code></pre></div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ot">palindrome ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>palindrome <span class="ot">=</span> \ <span class="op">@</span>a (<span class="op">$</span><span class="ot">dEq_a ::</span> <span class="dt">Eq</span> a) <span class="ot">-&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span><span class="ot">dEq_List_a ::</span> <span class="dt">Eq</span> [a]</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span>dEq_List_a <span class="ot">=</span> <span class="op">$</span>fEq_List <span class="op">@</span>a <span class="op">$</span>dEq_a</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span> \ (<span class="ot">ds ::</span> [a]) <span class="ot">-&gt;</span> (<span class="op">==</span>) <span class="op">@</span>[a] <span class="op">$</span>dEq_List_a ds (<span class="fu">reverse</span> <span class="op">@</span>a ds)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ot">palindrome ::</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> [a] <span class="ot">-&gt;</span> <span class="dt">Bool</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>palindrome <span class="ot">=</span> \ <span class="op">@</span>a (<span class="op">$</span><span class="ot">dEq_a ::</span> <span class="dt">Eq</span> a) <span class="ot">-&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span><span class="ot">dEq_List_a ::</span> <span class="dt">Eq</span> [a]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span>dEq_List_a <span class="ot">=</span> <span class="op">$</span>fEq_List <span class="op">@</span>a <span class="op">$</span>dEq_a</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span> \ (<span class="ot">ds ::</span> [a]) <span class="ot">-&gt;</span> (<span class="op">==</span>) <span class="op">@</span>[a] <span class="op">$</span>dEq_List_a ds (<span class="fu">reverse</span> <span class="op">@</span>a ds)</span></code></pre></div>
 </div>
 <div class="element: fragment">
 <p>Given: <code>Eq a</code><br />
 Wanted: <code>Eq [a]</code><br />
-Solve the implication <code>[G] Eq a ⇛ [W] Eq [a]</code> using the dictionary function <code>$fEq_List :: Eq a -&gt; Eq [a]</code>.</p>
+Solve the implication <code>[G] Eq a ⊢ [W] Eq [a]</code> using the dictionary function <code>$fEq_List :: Eq a -&gt; Eq [a]</code>.</p>
+</div>
+<div class="note">
+<p>We denote Givens by <code>[G]</code> and Wanteds by <code>[W]</code>. What’s a Wanted and what’s a Given is obvious here (Givens to the left of the implication, Wanteds to the right), but it’s useful to specifically notate this anyway.</p>
 </div>
 </section>
 <section id="nested-implications" class="slide level2">
 <h2>Nested implications</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>; <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">G</span> a <span class="kw">where</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG1</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">G</span> <span class="dt">Int</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG2</span><span class="ot"> ::</span> <span class="dt">Integral</span> b <span class="ot">=&gt;</span> <span class="dt">Maybe</span> c <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> <span class="dt">G</span> (<span class="dt">Maybe</span> c)</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ot">foo ::</span> <span class="dt">Num</span> (<span class="dt">F</span> a) <span class="ot">=&gt;</span> <span class="dt">G</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>foo x <span class="ot">=</span> <span class="kw">case</span> x <span class="kw">of</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG1</span> i   <span class="ot">-&gt;</span> i</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG2</span> m b <span class="ot">-&gt;</span> fromMaybe (<span class="fu">fromIntegral</span> b) m</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>; <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">G</span> a <span class="kw">where</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG1</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">G</span> <span class="dt">Int</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG2</span><span class="ot"> ::</span> <span class="dt">Integral</span> b <span class="ot">=&gt;</span> <span class="dt">Maybe</span> c <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> <span class="dt">G</span> (<span class="dt">Maybe</span> c)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="ot">foo ::</span> <span class="dt">Num</span> (<span class="dt">F</span> a) <span class="ot">=&gt;</span> <span class="dt">G</span> a <span class="ot">-&gt;</span> <span class="dt">F</span> a</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>foo x <span class="ot">=</span> <span class="kw">case</span> x <span class="kw">of</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG1</span> i   <span class="ot">-&gt;</span> i</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">MkG2</span> m b <span class="ot">-&gt;</span> fromMaybe (<span class="fu">fromIntegral</span> b) m</span></code></pre></div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
 </div>
 </section>
 <section id="part-ii-constraint-solving" class="slide level2">
@@ -318,13 +334,13 @@ Solve the implication <code>[G] Eq a ⇛ [W] Eq [a]</code> using the dictionary 
 <img src=solving_implications.svg height="550px" />
 </p>
 </section>
-<section id="section-1" class="slide level2">
+<section id="section" class="slide level2">
 <h2></h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>, <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">F</span> a <span class="kw">where</span> { <span class="dt">F</span> <span class="dt">Int</span> <span class="ot">=</span> <span class="dt">Int</span>, <span class="dt">F</span> (f a) <span class="ot">=</span> a }</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>[<span class="dt">G</span>] <span class="dt">Num</span> (<span class="dt">F</span> a) ⊢</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    [ [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Int</span> ⊢ [<span class="dt">W</span>] <span class="dt">F</span> a <span class="op">~</span> <span class="dt">Int</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    , ∀ b c<span class="op">.</span> [<span class="dt">G</span>] <span class="dt">Integral</span> b, [<span class="dt">G</span>] a <span class="op">~</span> <span class="dt">Maybe</span> c</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>           ⊢ [<span class="dt">W</span>] <span class="dt">Integral</span> b, [<span class="dt">W</span>] <span class="dt">Num</span> c ]</span></code></pre></div>
 <div class="worklist2">
 <p class="worklist-header">
 Work list
@@ -343,9 +359,6 @@ Inert set
 <p align="center">
 <img src=interaction_pipeline.svg height="550px" />
 </p>
-<aside class="notes">
-<p>Explain the inert set and the work list.</p>
-</aside>
 <!--
 ## Instance resolution
 
@@ -492,29 +505,29 @@ because of overlap of available instances.
 </section>
 <section id="decomposition" class="slide level2">
 <h2>Decomposition</h2>
-<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>(a <span class="ot">-&gt;</span> (b,c)) <span class="op">~</span> (x <span class="ot">-&gt;</span> (d,e))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, (b,c) <span class="op">~</span> (d,e)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, c <span class="op">~</span> d, c <span class="op">~</span> e</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>(a <span class="ot">-&gt;</span> (b,c)) <span class="op">~</span> (x <span class="ot">-&gt;</span> (d,e))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, (b,c) <span class="op">~</span> (d,e)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span> x, c <span class="op">~</span> d, c <span class="op">~</span> e</span></code></pre></div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Nt</span> a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b <span class="co">-- if the newtype constructor for Nt is in scope</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">Nt</span> a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  ⇝ a <span class="op">~</span><span class="dt">R</span><span class="op">#</span> b <span class="co">-- if the newtype constructor for Nt is in scope</span></span></code></pre></div>
 </div>
 </section>
 <section id="canonicalisation" class="slide level2">
 <h2>Canonicalisation</h2>
 <p>A <strong>canonical</strong> constraint is one that is in <strong>atomic</strong> form: it can’t be decomposed or rewritten in any way.</p>
 <div class="element: fragment">
-<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">TyFamCt</span><span class="ot"> ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Constraint</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">TyFamCt</span> ty <span class="kw">where</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> <span class="dt">Bool</span>  <span class="ot">=</span> ()</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> (a,b) <span class="ot">=</span> a <span class="op">~</span> b</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> c     <span class="ot">=</span> <span class="dt">Integral</span> c</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="dt">TyFamCt</span><span class="ot"> ::</span> <span class="dt">Type</span> <span class="ot">-&gt;</span> <span class="dt">Constraint</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> <span class="kw">family</span> <span class="dt">TyFamCt</span> ty <span class="kw">where</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> <span class="dt">Bool</span>  <span class="ot">=</span> ()</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> (a,b) <span class="ot">=</span> a <span class="op">~</span> b</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">TyFamCt</span> c     <span class="ot">=</span> <span class="dt">Integral</span> c</span></code></pre></div>
 </div>
 <div class="element: fragment">
-<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TyFamCt</span> (f a, g b)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~</span> g b</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~#</span> g b</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  ⇝ f <span class="op">~#</span> g, a <span class="op">~#</span> b</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">TyFamCt</span> (f a, g b)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~</span> g b</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  ⇝ f a <span class="op">~#</span> g b</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  ⇝ f <span class="op">~#</span> g, a <span class="op">~#</span> b</span></code></pre></div>
 </div>
 </section>
 <section id="questions" class="slide level2">
@@ -560,7 +573,7 @@ because of overlap of available instances.
 
         // Add the current slide number to the URL hash so that reloading the
         // page/copying the URL will return you to the same slide
-        hash: false,
+        hash: true,
 
         // Start with 1 for the hash rather than 0
         hashOneBasedIndex: false,
